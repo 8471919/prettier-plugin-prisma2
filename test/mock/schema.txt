@@ -1,0 +1,224 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "views"]
+  binaryTargets   = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = []
+}generator markdown {
+  provider = "prisma-markdown"
+  output   = "../docs/ERD.md"
+}
+
+/// Represents an E-commerce platform.
+/// 
+/// Each platform can have multiple accounts linked to it. This entity stores 
+/// information about the integration with different e-commerce platforms 
+/// such as Coupang, Smart Store, and 11st.
+/// 
+/// @namespace Platform
+model Platform {
+  /// Unique identifier for the platform.
+  id Int @id @default(autoincrement())
+
+  /// Name of the platform.
+  name String @db.VarChar
+
+  /// List of accounts linked to this platform.
+  accounts Account[]
+
+  /// Last synchronization time.
+  lastSync DateTime?
+}
+
+/// Represents an account associated with a platform.
+/// 
+/// Each account is linked to a specific platform and can have settings such 
+/// as synchronization intervals and credentials for API access.
+/// 
+/// @namespace Account
+model Account {
+  /// Unique identifier for the account.
+  id Int @id @default(autoincrement())
+
+  /// Identifier for the associated platform.
+  platformId Int
+
+  /// API Key or Token for authentication.
+  apiKey String @db.VarChar
+
+  /// Synchronization interval in minutes.
+  syncInterval Int
+
+  /// Indicator if the account is active.
+  isActive Boolean @default(true)
+
+  // Relationships
+  platform Platform @relation(fields: [platformId], references: [id])
+}
+
+/// Represents a product in the unified system.
+/// 
+/// This model handles the product information to ensure synchronization 
+/// across various platforms. It includes details such as pricing, stock, 
+/// options, and the current status of the product.
+/// 
+/// @namespace Product
+model Product {
+  /// Unique identifier for the product.
+  id Int @id @default(autoincrement())
+
+  /// Name of the product.
+  name String @db.VarChar
+
+  /// Current price of the product.
+  price Float
+
+  /// Current stock amount of the product.
+  stock Int
+
+  /// List of product options like size and color.
+  options Option[]
+
+  /// List of platform product associations.
+  platformProducts PlatformProduct[]
+}
+
+/// Represents a specific option of a product (e.g., size, color).
+/// 
+/// This model allows products to have variations based on different options.
+/// 
+/// @namespace Product
+model Option {
+  /// Unique identifier for the option.
+  id Int @id @default(autoincrement())
+
+  /// Type of the option (e.g., size, color).
+  type String @db.VarChar
+
+  /// Value of the option (e.g., "Red", "Large").
+  value String @db.VarChar
+
+  /// Associated product ID.
+  productId Int
+
+  // Relationships
+  product Product @relation(fields: [productId], references: [id])
+}
+
+/// Represents a combined relationship between products and platforms.
+/// 
+/// This entity serves to link a product available on multiple platforms, 
+/// ensuring inventory and pricing synchronization across them.
+/// 
+/// @namespace Product
+model PlatformProduct {
+  /// Unique identifier for the platform product entry.
+  id Int @id @default(autoincrement())
+
+  /// Identifier for the associated product.
+  productId Int
+
+  /// Identifier for the associated platform.
+  platformId Int
+
+  /// Current stock level for this product on the platform.
+  stock Int
+
+  // Relationships
+  product  Product  @relation(fields: [productId], references: [id])
+  platform Platform @relation(fields: [platformId], references: [id])
+}
+
+/// Represents an order in the unified system.
+/// 
+/// This entity consolidates orders from various platforms. It includes order 
+/// status management and focus on efficient processing for shipping and returns.
+/// 
+/// @namespace Order
+model Order {
+  /// Unique identifier for the order.
+  id Int @id @default(autoincrement())
+
+  /// Product linked to this order.
+  productId Int
+
+  /// Status of the order (e.g., pending, completed, canceled).
+  status String @db.VarChar
+
+  /// Tracking number for the shipment.
+  trackingNumber String?
+
+  /// Creation date of the order.
+  createdAt DateTime @default(now())
+
+  // Relationships
+  product Product @relation(fields: [productId], references: [id])
+}
+
+/// Represents inventory management within the system.
+/// 
+/// Tracks inventory changes and synchronization with local stock levels. It can 
+/// trigger alerts when stock falls below certain thresholds.
+/// 
+/// @namespace Inventory
+model Inventory {
+  /// Unique identifier for the inventory record.
+  id Int @id @default(autoincrement())
+
+  /// Associated product.
+  productId Int
+
+  /// Quantity of the product in inventory.
+  quantity Int
+
+  /// Threshold for low-stock alert.
+  lowStockThreshold Int
+
+  // Relationships
+  product Product @relation(fields: [productId], references: [id])
+}
+
+/// Represents the sales data for reporting.
+/// 
+/// This model consolidates sales information including generated reports on a 
+/// daily, weekly, or monthly basis.
+/// 
+/// @namespace Sales
+model SalesReport {
+  /// Unique identifier for the sales report.
+  id Int @id @default(autoincrement())
+
+  /// The period of the sales report.
+  period String @db.VarChar
+
+  /// Total sales amount.
+  totalSales Float
+
+  /// Platform associated with this report.
+  platformId Int
+
+  // Relationships
+  platform Platform @relation(fields: [platformId], references: [id])
+}
+
+/// Represents an AI agent's interaction.
+/// 
+/// This model logs the interactions with the AI agent and tracks the commands 
+/// given by users for analysis and improvement.
+/// 
+/// @namespace AI
+model AIInteraction {
+  /// Unique identifier for the interaction entry.
+  id Int @id @default(autoincrement())
+
+  /// Command issued to the AI agent.
+  command String
+
+  /// Response generated by the AI agent.
+  response String
+
+  /// Timestamp of the interaction.
+  timestamp DateTime @default(now())
+}

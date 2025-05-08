@@ -1,0 +1,56 @@
+{
+  "name": "prettier-plugin-prisma2",
+  "version": "0.0.7",
+  "main": "./lib/index.cjs",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    "import": "./lib/index.mjs",
+    "require": "./lib/index.cjs",
+    "default": "./lib/index.cjs",
+    "types": "./lib/index.d.ts"
+  },
+  "scripts": {
+    "test": "ts-node test",
+    "build": "rimraf lib && tsc && rollup -c",
+    "build:test": "rimraf lib && tsc -p ./test/tsconfig.json",
+    "release": "bumpp -c 'chore: release v%s [skip build]'",
+    "package:latest": "npm run build && npm publish"
+  },
+  "keywords": [
+    "prettier",
+    "prisma",
+    "prisma-formatter",
+    "prisma2",
+    "prisma-prettier",
+    "prettier-plugin-prisma",
+    "prettier-plugin-prisma2"
+  ],
+  "files": [
+    "lib",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "author": "Michael Jeong",
+  "license": "MIT",
+  "description": "Prettier plugin for Prisma 2",
+  "dependencies": {
+    "@prisma/prisma-fmt-wasm": "^4.17.0-16.27eb2449f178cd9fe1a4b892d732cc4795f75085"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/node": "^22.15.3",
+    "bumpp": "^10.1.0",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.40.1",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "prettier": "^3.0.0"
+  }
+}
